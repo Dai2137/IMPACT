@@ -2,7 +2,6 @@ import xml.etree.ElementTree as ET
 import glob
 import os
 import csv
-import pandas as pd
 
 path = '/Downloads/Dataset/2015' 
 pattern = '**/*.XML'

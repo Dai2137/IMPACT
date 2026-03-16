@@ -1,0 +1,17 @@
+# dataset
+data/
+
+# csv dataset
+*.csv
+
+# mac
+.DS_Store
+
+# python env
+.venv/
+
+# python
+__pycache__/
+*.pyc
+
+Caption generation/LLaVA/

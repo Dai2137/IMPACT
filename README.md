@@ -47,7 +47,7 @@ model, _, preprocess = open_clip.create_model_and_transforms('hf-hub:ellen625/Pa
 ```
 #### Demo on PatentCLIP and text-image retrieval
 
-Text-image retrieval with PatentCLIP [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)]([https://colab.research.google.com/drive/1wzmlnfvfJqyZqeL5kJMJr-O3QMwWgCiM?usp=sharing])
+Text-image retrieval with PatentCLIP [![Open In Colab](https://colab.research.google.com/drive/1wzmlnfvfJqyZqeL5kJMJr-O3QMwWgCiM?usp=sharing)]([https://colab.research.google.com/drive/1wzmlnfvfJqyZqeL5kJMJr-O3QMwWgCiM?usp=sharing])
 
 #### Multimodal retrieval results 
 
