@@ -22,13 +22,22 @@ from llava.mm_utils import tokenizer_image_token, KeywordsStoppingCriteria
 from transformers import TextStreamer, AutoTokenizer
 from llava.model import LlavaLlamaForCausalLM
 import torch
+from transformers import AutoTokenizer
+import os
+
 
 model_path = "4bit/llava-v1.5-13b-3GB"
 kwargs = {"device_map": "auto"}
+
+
+os.makedirs("/content/offload", exist_ok=True)
+
 model = LlavaLlamaForCausalLM.from_pretrained(
     model_path,
+    torch_dtype=torch.float16,   # ここは元コードに合わせて必要なら残す
     low_cpu_mem_usage=True,
-    **kwargs
+    device_map="auto",
+    offload_folder="/content/offload",
 )
 
 
