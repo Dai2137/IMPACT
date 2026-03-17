@@ -1,30 +1,35 @@
-import pandas as pd
 import os
+import sys
+
+LLAVA_ROOT = r"LLaVA"
+if LLAVA_ROOT not in sys.path:
+    sys.path.insert(0, LLAVA_ROOT)
+
+import pandas as pd
 import requests
 from PIL import Image
 from io import BytesIO
+
 from llava.conversation import conv_templates, SeparatorStyle
 from llava.utils import disable_torch_init
-from llava.constants import IMAGE_TOKEN_INDEX, DEFAULT_IMAGE_TOKEN, DEFAULT_IM_START_TOKEN, DEFAULT_IM_END_TOKEN
-from llava.mm_utils import tokenizer_image_token, get_model_name_from_path, KeywordsStoppingCriteria
-from transformers import TextStreamer
-
-
-from transformers import AutoTokenizer, BitsAndBytesConfig
+from llava.constants import (
+    IMAGE_TOKEN_INDEX,
+    DEFAULT_IMAGE_TOKEN,
+    DEFAULT_IM_START_TOKEN,
+    DEFAULT_IM_END_TOKEN,
+)
+from llava.mm_utils import tokenizer_image_token, KeywordsStoppingCriteria
+from transformers import TextStreamer, AutoTokenizer
 from llava.model import LlavaLlamaForCausalLM
 import torch
 
 model_path = "4bit/llava-v1.5-13b-3GB"
 kwargs = {"device_map": "auto"}
-kwargs['load_in_4bit'] = True
-kwargs['quantization_config'] = BitsAndBytesConfig(
-    load_in_4bit=True,
-    bnb_4bit_compute_dtype=torch.float16,
-    bnb_4bit_use_double_quant=True,
-    bnb_4bit_quant_type='nf4'
+model = LlavaLlamaForCausalLM.from_pretrained(
+    model_path,
+    low_cpu_mem_usage=True,
+    **kwargs
 )
-model = LlavaLlamaForCausalLM.from_pretrained(model_path, low_cpu_mem_usage=True, **kwargs)
-tokenizer = AutoTokenizer.from_pretrained(model_path, use_fast=False)
 
 
 vision_tower = model.get_vision_tower()
@@ -66,7 +71,7 @@ def caption_image(image_file, prompt):
     output = outputs.strip('</s>')
     return image, output
 
-patent_data = pd.read_csv('/2020/processed_xml_2020.csv')
+patent_data = pd.read_csv('../data/Sample data/sample_data.csv')
 for index,row in patent_data.iterrows():
             patent_title = row['title']
             folder_list = eval(row['file_names'])
@@ -74,11 +79,11 @@ for index,row in patent_data.iterrows():
             folder_name = "-".join(file_name.split("-")[:2])
             folder_name=os.path.join(folder_name,file_name)
             try:
-                image, output = caption_image(f'/2020/{folder_name}', f'This is the image of {patent_title}. What is the shape of the image?What is the functionality of {patent_title}?')
+                image, output = caption_image(f'../data/Sample data/{folder_name}', f'This is the image of {patent_title}. What is the shape of the image?What is the functionality of {patent_title}?')
                 patent_data.loc[index, 'caption'] = output
-                patent_data.iloc[[patent_data.index.get_loc(index)]].to_csv('/clipdata/processed_xml_2020_captions_ongoing.csv', mode='a', header=False, index=False)
+                patent_data.iloc[[patent_data.index.get_loc(index)]].to_csv('../data/Sample data/sample_data_captions_ongoing.csv', mode='a', header=False, index=False)
             except:
                 print('error')
 
-patent_data.to_csv('/2020/processed_xml_2020_ccaptions.csv', index=False) 
+patent_data.to_csv('../data/Sample data/sample_data_captions.csv', index=False) 
 print('done')
