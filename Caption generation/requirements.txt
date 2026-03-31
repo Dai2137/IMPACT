@@ -7,3 +7,5 @@ protobuf
 pandas>=1.2.0
 torch
 requests
+traceback
+ast

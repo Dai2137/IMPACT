@@ -24,7 +24,8 @@ from llava.model import LlavaLlamaForCausalLM
 import torch
 from transformers import AutoTokenizer
 import os
-
+import traceback
+import ast
 
 model_path = "4bit/llava-v1.5-13b-3GB"
 kwargs = {"device_map": "auto"}
@@ -40,6 +41,7 @@ model = LlavaLlamaForCausalLM.from_pretrained(
     offload_folder="/content/offload",
 )
 
+tokenizer = AutoTokenizer.from_pretrained(model_path, use_fast=False)
 
 vision_tower = model.get_vision_tower()
 
@@ -62,13 +64,13 @@ def caption_image(image_file, prompt):
     conv_mode = "llava_v0"
     conv = conv_templates[conv_mode].copy()
     roles = conv.roles
-    image_tensor = image_processor.preprocess(image, return_tensors='pt')['pixel_values'].half().cuda()
+    image_tensor = image_processor.preprocess(image, return_tensors='pt')['pixel_values'].half().to(device)
     inp = f"{roles[0]}: {prompt}"
     inp = DEFAULT_IM_START_TOKEN + DEFAULT_IMAGE_TOKEN + DEFAULT_IM_END_TOKEN + '\n' + inp
     conv.append_message(conv.roles[0], inp)
     conv.append_message(conv.roles[1], None)
     raw_prompt = conv.get_prompt()
-    input_ids = tokenizer_image_token(raw_prompt, tokenizer, IMAGE_TOKEN_INDEX, return_tensors='pt').unsqueeze(0).cuda()
+    input_ids = tokenizer_image_token(raw_prompt, tokenizer, IMAGE_TOKEN_INDEX, return_tensors='pt').unsqueeze(0).to(device)
     stop_str = conv.sep if conv.sep_style != SeparatorStyle.TWO else conv.sep2
     keywords = [stop_str]
     stopping_criteria = KeywordsStoppingCriteria(keywords, tokenizer, input_ids)
@@ -81,9 +83,10 @@ def caption_image(image_file, prompt):
     return image, output
 
 patent_data = pd.read_csv('../data/Sample data/sample_data.csv')
+patent_data['caption'] = ''
 for index,row in patent_data.iterrows():
             patent_title = row['title']
-            folder_list = eval(row['file_names'])
+            folder_list = ast.literal_eval(row['file_names'])
             file_name=folder_list[0]
             folder_name = "-".join(file_name.split("-")[:2])
             folder_name=os.path.join(folder_name,file_name)
@@ -91,8 +94,12 @@ for index,row in patent_data.iterrows():
                 image, output = caption_image(f'../data/Sample data/{folder_name}', f'This is the image of {patent_title}. What is the shape of the image?What is the functionality of {patent_title}?')
                 patent_data.loc[index, 'caption'] = output
                 patent_data.iloc[[patent_data.index.get_loc(index)]].to_csv('../data/Sample data/sample_data_captions_ongoing.csv', mode='a', header=False, index=False)
-            except:
-                print('error')
+                print(f"ok: {index} {file_name}")
+            except Exception as e:
+                print(f"error at row={index}, title={patent_title}")
+                print(f"file_names={row['file_names']}")
+                print(repr(e))
+                traceback.print_exc()
 
 patent_data.to_csv('../data/Sample data/sample_data_captions.csv', index=False) 
 print('done')
