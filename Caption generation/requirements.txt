@@ -1,4 +1,4 @@
-﻿transformers==4.37.2
+﻿transformers==4.31.0
 gradio
 accelerate
 sentencepiece
@@ -7,5 +7,3 @@ protobuf
 pandas>=1.2.0
 torch
 requests
-traceback
-ast
