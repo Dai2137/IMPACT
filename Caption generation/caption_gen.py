@@ -76,7 +76,7 @@ def caption_image(image_file, prompt):
     stopping_criteria = KeywordsStoppingCriteria(keywords, tokenizer, input_ids)
     with torch.inference_mode():
       output_ids = model.generate(input_ids, images=image_tensor, do_sample=True, temperature=0.2, 
-                                  max_new_tokens=1024, use_cache=True, stopping_criteria=[stopping_criteria])
+                                  max_new_tokens=1024, use_cache=False, stopping_criteria=[stopping_criteria])
     outputs = tokenizer.decode(output_ids[0]).strip()
     conv.messages[-1][-1] = outputs
     output = outputs.strip('</s>')
@@ -85,21 +85,21 @@ def caption_image(image_file, prompt):
 patent_data = pd.read_csv('../data/Sample data/sample_data.csv')
 patent_data['caption'] = ''
 for index,row in patent_data.iterrows():
-            patent_title = row['title']
-            folder_list = ast.literal_eval(row['file_names'])
-            file_name=folder_list[0]
-            folder_name = "-".join(file_name.split("-")[:2])
-            folder_name=os.path.join(folder_name,file_name)
-            try:
-                image, output = caption_image(f'../data/Sample data/{folder_name}', f'This is the image of {patent_title}. What is the shape of the image?What is the functionality of {patent_title}?')
-                patent_data.loc[index, 'caption'] = output
-                patent_data.iloc[[patent_data.index.get_loc(index)]].to_csv('../data/Sample data/sample_data_captions_ongoing.csv', mode='a', header=False, index=False)
-                print(f"ok: {index} {file_name}")
-            except Exception as e:
-                print(f"error at row={index}, title={patent_title}")
-                print(f"file_names={row['file_names']}")
-                print(repr(e))
-                traceback.print_exc()
+    patent_title = row['title']
+    folder_list = ast.literal_eval(row['file_names'])
+    file_name=folder_list[0]
+    folder_name = "-".join(file_name.split("-")[:2])
+    folder_name=os.path.join(folder_name,file_name)
+    try:
+        image, output = caption_image(f'../data/Sample data/{folder_name}', f'This is the image of {patent_title}. What is the shape of the image?What is the functionality of {patent_title}?')
+        patent_data.loc[index, 'caption'] = output
+        patent_data.iloc[[patent_data.index.get_loc(index)]].to_csv('../data/Sample data/sample_data_captions_ongoing.csv', mode='a', header=False, index=False)
+        print(f"ok: {index} {file_name}")
+    except Exception as e:
+        print(f"error at row={index}, title={patent_title}")
+        print(f"file_names={row['file_names']}")
+        print(repr(e))
+        traceback.print_exc()
 
 patent_data.to_csv('../data/Sample data/sample_data_captions.csv', index=False) 
 print('done')
