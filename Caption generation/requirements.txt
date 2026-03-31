@@ -1,4 +1,4 @@
-﻿transformers==4.36.2
+﻿transformers==4.37.2
 gradio
 accelerate
 sentencepiece
